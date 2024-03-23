@@ -30,7 +30,7 @@ numbers_to_words = {
     'f': 'пятнадцать'
 }
 
-hex_regex = r"[0-9a-fA-F]+".format(0)
+hex_regex = r"[0-9a-fA-F]+"
 
 def hex_to_words(hex_number):
     hex_number = hex_number[2:]
