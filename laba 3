@@ -8,7 +8,7 @@ D	E
 
 24.	Формируется матрица F следующим образом: если в Е количество чисел,
 больших К в четных столбцах в области 2 больше, чем произведение чисел
-в нечетных строках в области 4, то поменять в С симметрично области 1 и 4 местами,
+в нечетных строках в области 4, то поменять в С симметрично области 1 и 2 местами,
 иначе С и В поменять местами несимметрично. При этом матрица А не меняется.
 После чего вычисляется выражение: К*(A*F)+ K* F T .
 Выводятся по мере формирования А, F и все матричные операции последовательно.
@@ -16,30 +16,45 @@ D	E
 
 import random
 
-# Функция для создания матрицы с целенаправленным заполнением для тестирования
 def create_matrix(N):
+    """
+    Создание квадратной матрицы размера N x N.
+    """
     return [[random.randint(-10, 10) for _ in range(N)] for _ in range(N)]
 
-# Функция для подсчета количество чисел, больших К в E
+def print_matrix(matrix):
+    """
+    Вывод матрицы на экран.
+    """
+    for row in matrix:
+        print(' '.join(map(str, row)))
+    print()
+
 def count_el_bigger_k(matrix, k):
+    """
+    Подсчет количества элементов больших k в матрице.
+    """
     count = 0
-    for i in range(len(matrix)):
-        for j in range(i + 1):
-            if j > k and matrix[i][j] == 0:
+    for row in matrix:
+        for num in row:
+            if num > k:
                 count += 1
     return count
 
-# Функция для вычисления произведение чисел в нечетных строках в области 4
 def product_of_numbers_in_odd_strings(matrix):
-    size = len(matrix)
+    """
+    Вычисление произведения элементов в нечетных строках матрицы.
+    """
     product = 1
-    for i in range(size, 2):
-        for j in range(size - i):
-            product *= matrix[i][j]
+    for i in range(1, len(matrix), 2):
+        for num in matrix[i]:
+            product *= num
     return product
 
-# Функция для формирования матрицы F согласно условиям задания
 def create_matrix_F(A, B, C, D, E, K):
+    """
+    Формирование матрицы F согласно условиям задачи.
+    """
     F = [row[:] for row in A]  # Копирование матрицы A
 
     count_el_in_E = count_el_bigger_k(E, K)
@@ -47,20 +62,32 @@ def create_matrix_F(A, B, C, D, E, K):
 
     if count_el_in_E > product_of_D_perimeter:
         for i in range(len(A) // 2):
-            for j in range(i + 1):
-                F[i][j], F[len(A) // 2 + i][len(A) - j - 1] = F[len(A) // 2 + i][len(A) - j - 1], F[i][j]
+            for j in range(len(A) // 2):
+                C[i][j], C[i + len(A) // 2][j] = C[i + len(A) // 2][j], C[i][j]
     else:
         for i in range(len(A) // 2):
             for j in range(len(A) // 2):
-                F[i][j + len(A) // 2], F[i + len(A) // 2][j] = E[i][j], B[i][j]
+                B[i][j], C[i][j] = C[i][j], B[i][j]
 
     return F
 
-def print_matrix(matrix):
-    for row in matrix:
-        print(' '.join(map(str, row)))
-    print()
+def multiply_matrix_by_scalar(matrix, scalar):
+    """
+    Умножение матрицы на скаляр.
+    """
+    return [[scalar * cell for cell in row] for row in matrix]
 
+def subtract_matrices(A, B):
+    """
+    Вычитание матриц.
+    """
+    return [[A[i][j] - B[i][j] for j in range(len(A[i]))] for i in range(len(A))]
+
+def transpose_matrix(matrix):
+    """
+    Транспонирование матрицы.
+    """
+    return [list(row) for row in zip(*matrix)]
 
 def main():
     K = int(input("Введите число K: "))
@@ -85,34 +112,30 @@ def main():
             for j in range(mid):
                 E[i][j], E[j][i] = E[j][i], E[i][j]
     else:
-        C, E = E, C
+        C, B = B, C
 
     F = [B[i] + C[i] for i in range(mid)] + [D[i] + E[i] for i in range(mid)]
 
     print("Матрица F после преобразований:")
     print_matrix(F)
 
-    KA = multiply_matrix_by_scalar(A, K)
-    A_transposed = transpose_matrix(A)
-    KA_transposed = multiply_matrix_by_scalar(A_transposed, K)
-    A_squared = matrix_multiplication(A, A)
-    KAA_minus_KAT = subtract_matrices(multiply_matrix_by_scalar(A_squared, K), KA_transposed)
+    FA = [[sum(a * f for a, f in zip(row, col)) for col in zip(*F)] for row in A]
+    F_transposed = transpose_matrix(F)
+    KF_transposed = multiply_matrix_by_scalar(F_transposed, K)
+    KAF_minus_KFT = subtract_matrices(multiply_matrix_by_scalar(FA, K), KF_transposed)
 
     # Вывод результатов
-    print("Матрица KA (K умноженное на A):")
-    print_matrix(KA)
+    print("Матрица FA (F умноженное на A):")
+    print_matrix(FA)
 
-    print("Матрица A транспонированная:")
-    print_matrix(A_transposed)
+    print("Матрица F транспонированная:")
+    print_matrix(F_transposed)
 
-    print("Матрица KAT (K умноженное на A транспонированное):")
-    print_matrix(KA_transposed)
+    print("Матрица KFT (K умноженное на F транспонированное):")
+    print_matrix(KF_transposed)
 
-    print("Матрица KAA (K умноженное на A квадрат):")
-    print_matrix(multiply_matrix_by_scalar(A_squared, K))
-
-    print("Результат выражения ((К*A)A– KA^T):")
-    print_matrix(KAA_minus_KAT)
+    print("Результат выражения K*(A*F) + K*FT:")
+    print_matrix(KAF_minus_KFT)
 
 if __name__ == "__main__":
     main()
