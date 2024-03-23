@@ -1,0 +1,118 @@
+'''С клавиатуры вводится два числа K и N. Квадратная матрица А(N,N),
+состоящая из 4-х равных по размерам подматриц, B,C,D,E заполняется
+случайным образом целыми числами в интервале [-10,10]. Для тестирования
+использовать не случайное заполнение, а целенаправленное.
+Для ИСТд-11 вид матрицы А
+B	C
+D	E
+
+24.	Формируется матрица F следующим образом: если в Е количество чисел,
+больших К в четных столбцах в области 2 больше, чем произведение чисел
+в нечетных строках в области 4, то поменять в С симметрично области 1 и 4 местами,
+иначе С и В поменять местами несимметрично. При этом матрица А не меняется.
+После чего вычисляется выражение: К*(A*F)+ K* F T .
+Выводятся по мере формирования А, F и все матричные операции последовательно.
+'''
+
+import random
+
+# Функция для создания матрицы с целенаправленным заполнением для тестирования
+def create_matrix(N):
+    return [[random.randint(-10, 10) for _ in range(N)] for _ in range(N)]
+
+# Функция для подсчета количество чисел, больших К в E
+def count_el_bigger_k(matrix, k):
+    count = 0
+    for i in range(len(matrix)):
+        for j in range(i + 1):
+            if j > k and matrix[i][j] == 0:
+                count += 1
+    return count
+
+# Функция для вычисления произведение чисел в нечетных строках в области 4
+def product_of_numbers_in_odd_strings(matrix):
+    size = len(matrix)
+    product = 1
+    for i in range(size, 2):
+        for j in range(size - i):
+            product *= matrix[i][j]
+    return product
+
+# Функция для формирования матрицы F согласно условиям задания
+def create_matrix_F(A, B, C, D, E, K):
+    F = [row[:] for row in A]  # Копирование матрицы A
+
+    count_el_in_E = count_el_bigger_k(E, K)
+    product_of_D_perimeter = product_of_numbers_in_odd_strings(D)
+
+    if count_el_in_E > product_of_D_perimeter:
+        for i in range(len(A) // 2):
+            for j in range(i + 1):
+                F[i][j], F[len(A) // 2 + i][len(A) - j - 1] = F[len(A) // 2 + i][len(A) - j - 1], F[i][j]
+    else:
+        for i in range(len(A) // 2):
+            for j in range(len(A) // 2):
+                F[i][j + len(A) // 2], F[i + len(A) // 2][j] = E[i][j], B[i][j]
+
+    return F
+
+def print_matrix(matrix):
+    for row in matrix:
+        print(' '.join(map(str, row)))
+    print()
+
+
+def main():
+    K = int(input("Введите число K: "))
+    N = int(input("Введите размерность матрицы N: "))
+
+    if N % 2 != 0:
+        print("N должно быть четным.")
+        return
+
+    A = create_matrix(N)
+    print("Матрица A:")
+    print_matrix(A)
+
+    mid = N // 2
+    B = [row[:mid] for row in A[:mid]]
+    C = [row[mid:] for row in A[:mid]]
+    D = [row[:mid] for row in A[mid:]]
+    E = [row[mid:] for row in A[mid:]]
+
+    if count_el_bigger_k(E, K) > product_of_numbers_in_odd_strings(D):
+        for i in range(mid):
+            for j in range(mid):
+                E[i][j], E[j][i] = E[j][i], E[i][j]
+    else:
+        C, E = E, C
+
+    F = [B[i] + C[i] for i in range(mid)] + [D[i] + E[i] for i in range(mid)]
+
+    print("Матрица F после преобразований:")
+    print_matrix(F)
+
+    KA = multiply_matrix_by_scalar(A, K)
+    A_transposed = transpose_matrix(A)
+    KA_transposed = multiply_matrix_by_scalar(A_transposed, K)
+    A_squared = matrix_multiplication(A, A)
+    KAA_minus_KAT = subtract_matrices(multiply_matrix_by_scalar(A_squared, K), KA_transposed)
+
+    # Вывод результатов
+    print("Матрица KA (K умноженное на A):")
+    print_matrix(KA)
+
+    print("Матрица A транспонированная:")
+    print_matrix(A_transposed)
+
+    print("Матрица KAT (K умноженное на A транспонированное):")
+    print_matrix(KA_transposed)
+
+    print("Матрица KAA (K умноженное на A квадрат):")
+    print_matrix(multiply_matrix_by_scalar(A_squared, K))
+
+    print("Результат выражения ((К*A)A– KA^T):")
+    print_matrix(KAA_minus_KAT)
+
+if __name__ == "__main__":
+    main()
