@@ -111,7 +111,7 @@ for i in range(len(F)):
         Ftrans[i][j] = k * F[j][i]
         print("{:4d}".format(Ftrans[i][j]), end="")
     print()
-print()ф
+print()
 print("К*(A*F)+ K* F транспонированная:")
 for i in range(len(F)):
     for j in range(len(F)):
