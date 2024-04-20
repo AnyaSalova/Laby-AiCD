@@ -6,7 +6,7 @@
 D	Е
 
 Для простоты все индексы в подматрицах относительные.
-По сформированной матрице F (или ее частям) необходимо вывести не менее 3 разных графиков.
+По сформированной матрице F (или ее частям) необходимо вывести не менее 3 разных видов графиков.
 Программа должна использовать функции библиотек numpy  и mathplotlib
 
 24.	Формируется матрица F следующим образом: скопировать в нее А и  если в Е количество чисел,
@@ -20,6 +20,40 @@ D	Е
 
 import numpy as np
 import matplotlib.pyplot as plt
+
+# Функция для проверки условия и перестановки подматриц
+def swap_submatrices_conditionally(A, B, C, K):
+    count_greater_K = np.sum(E[:, 1::2] > K)
+    product_odd_rows = np.prod(E[::2, :], axis=1).prod()
+    if count_greater_K < product_odd_rows:
+        A[:mid, :mid], A[:mid, mid:] = C.copy(), B.copy()
+    else:
+        A[:mid, :mid], A[:mid, mid:] = B, C
+    return A
+
+# Функция для отображения матрицы в виде тепловой карты
+def plot_heatmap(matrix, title):
+    plt.imshow(matrix, cmap='hot', interpolation='nearest')
+    plt.title(title)
+    plt.colorbar()
+    plt.show()
+
+# Функция для отображения матрицы в виде графика сетки
+def plot_grid(matrix, title):
+    plt.spy(matrix)
+    plt.title(title)
+    plt.show()
+
+# Функция для отображения матрицы в виде гистограммы значений
+def plot_histogram(matrix, title):
+    plt.hist(matrix.ravel(), bins=range(-10, 11))
+    plt.title(title)
+    plt.show()
+def plot_matrix(matrix, title):
+    plt.matshow(matrix)
+    plt.title(title)
+    plt.colorbar()
+    plt.show()
 
 # Ввод K и N
 K = int(input("Введите K: "))
@@ -44,14 +78,7 @@ E = A[mid:, mid:]
 
 # Формируем матрицу F
 F = A.copy()
-count_greater_K = np.sum(E[:, 1::2] > K)  # Числа больше K в четных столбцах
-product_odd_rows = np.prod(E[::2, :])      # Произведение чисел в нечетных строках
-
-# Условие для изменения подматриц
-if count_greater_K < product_odd_rows:
-    F[:mid, :mid], F[:mid, mid:] = F[:mid, mid:], F[:mid, :mid].copy()  # Меняем B и C симметрично
-else:
-    F[:mid, :mid], F[:mid, mid:] = F[mid:, mid:], F[:mid, :mid]         # Меняем C и B несимметрично
+F = swap_submatrices_conditionally(F, B, C, K)
 
 # Вывод матрицы F
 print("Матрица F:")
@@ -68,14 +95,7 @@ else:
 print("Результат вычислений:")
 print(result)
 
-# Функция для отображения матрицы в виде графика
-def plot_matrix(matrix, title):
-    plt.matshow(matrix)
-    plt.title(title)
-    plt.colorbar()
-    plt.show()
-
 # Выводим графики
-plot_matrix(A, "Матрица A")
-plot_matrix(F, "Матрица F")
-plot_matrix(result, "Результат вычислений")
+plot_heatmap(A, "Тепловая карта матрицы A")
+plot_grid(F, "График сетки матрицы F")
+plot_histogram(result, "Гистограмма значений матрицы result")
