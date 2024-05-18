@@ -6,6 +6,8 @@
 import time
 import itertools
 
+#1
+
 def generate_all_menus_algo(fruits, days):
     def backtrack(path, depth):
         if depth == days:
@@ -35,7 +37,7 @@ for schedule in all_menus_algo:
 print(f"Время выполнения (алгоритмический подход): {end_time_algo - start_time_algo} секунд")
 
 
-a = input()
+a = input('нажмите enter для продолжения')
 
 def generate_all_menus_builtin(fruits, days):
     return list(itertools.product(fruits, repeat=days))
@@ -52,6 +54,8 @@ for schedule in all_menus_builtin:
 print(f"Время выполнения (встроенные функции): {end_time_builtin - start_time_builtin} секунд")
 print(f"Разность по времени выполнения: {abs((end_time_builtin - start_time_builtin) - (end_time_algo - start_time_algo))} секунд")
 
+a = input('нажмите enter для продолжения')
+
 
 #2 Добавим ограничение: ребенок не должен есть один и тот же фрукт два дня подряд.
 # Также добавим целевую функцию для нахождения оптимального решения, например,
@@ -66,7 +70,7 @@ def is_valid_schedule(schedule):
 def target_function(schedule):
     return len(set(schedule))
 
-def find_optimal_menu(fruits, days): #Целевая функция
+def find_optimal_menu(fruits, days): #целевая функция
     valid_menus = [menu for menu in itertools.product(fruits, repeat=days) if is_valid_schedule(menu)]
     optimal_menu = max(valid_menus, key=target_function)
     return optimal_menu
@@ -75,6 +79,21 @@ def find_optimal_menu(fruits, days): #Целевая функция
 start_time_optimal = time.time()
 optimal_menu = find_optimal_menu(fruits, days)
 end_time_optimal = time.time()
+
+# Вывод результатов алгоритмического подхода
+print("Алгоритмический подход усложненной задачи:")
+for schedule in all_menus_algo:
+    print(schedule)
+print(f"Время выполнения усложненной задачи(алгоритмический подход): {end_time_algo - start_time_algo} секунд")
+
+a = input('нажмите enter для продолжения')
+
+# Вывод результатов подхода с использованием встроенных функций
+print("Подход с использованием встроенных функций для усложненной задачи:")
+for schedule in all_menus_builtin:
+    print(schedule)
+print(f"Время выполнения усложненной задачи (встроенные функции): {end_time_builtin - start_time_builtin} секунд")
+print(f"Разность по времени выполнения: {abs((end_time_builtin - start_time_builtin) - (end_time_algo - start_time_algo))} секунд")
 
 # Вывод оптимального меню
 print("Оптимальное меню:")
