@@ -6,69 +6,112 @@
 Вариант 24. У няни неограниченное количество  фруктов К разных названий (ф1,…фК).
 Сформировать (вывести) все возможные варианты меню полдника (1 фрукт) для ребенка на неделю.
 '''
-import random
 
-# Случайные комбинации
-def get_random_combinations(sequence, size, num_samples):
-    sample_permutations = []
-    for _ in range(num_samples):
-        sample_permutations.append(random.sample(sequence, size))
-    return sample_permutations
+import time
+import itertools
+import tkinter as tk
+from tkinter import scrolledtext
 
-# Класс со свойствами фруктов: набор "названий" и случайной калорийности для каждого фрукта
-class Fruit:
-    def __init__(self, num_fruits):
-        self.num_fruits = num_fruits
-        self.fruits = ['ф' + str(i) for i in range(1, self.num_fruits + 1)]
-        self.calories = self.generate_calories_dict()
+'''условие для усложнения'''
+def is_valid_schedule(schedule):
+    for i in range(1, len(schedule)):
+        if schedule[i] == schedule[i-1]:
+            return False
+    return True
 
-    def generate_calories_dict(self):
-        return {fruit: random.randint(40, 140) for fruit in self.fruits}
+'''усложненный алгоритмический способ'''
+def complex_generate_all_menus_algo(fruits, days):
+    def is_valid_schedule(path, fruit):
+        return not path or path[-1] != fruit
 
-# Класс для генерации меню
-class GenerationMenu:
-    def __init__(self, num_weeks, fruits, calories):
-        self.num_weeks = num_weeks
-        self.fruits = fruits
-        self.calories = calories
-        self.unique_combinations = get_random_combinations(self.fruits, 7, 1000)
+    def backtrack(path, depth):
+        if depth == days:
+            all_menus.append(path)
+            return
+        for fruit in fruits:
+            if is_valid_schedule(path, fruit):
+                backtrack(path + [fruit], depth + 1)
 
-    def get_week_menu(self):
-        days = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье']
-        for week_num in range(1, self.num_weeks + 1):
-            print(f"\nНеделя {week_num}:")
-            for i, week_fruits_list in enumerate(self.unique_combinations):
-                print(f" \nВозможный вид недели ({i+1}):\n")
-                for day, fruit in zip(days, week_fruits_list):
-                    print(f"  {day}: {fruit} - {self.calories[fruit]} калл.")
-                max_cal = MaxCal(week_fruits_list, self.calories)
-                print(f"Самый калорийный фрукт за день: {max_cal.calculate_max_calories_fruits()} - {max_cal.calculate_max_calories()} калл.")
+    all_menus = []
+    backtrack([], 0)
+    return all_menus
 
-# Класс для нахождения максимальной калорийности на недели
-class MaxCal:
-    def __init__(self, week_fruits, calories):
-        self.week_fruits = week_fruits
-        self.calories = calories
+'''усложненная функция с использованием функций питона'''
+def complex_generate_all_menus_builtin(fruits, days):
+    def is_valid_menu(menu):
+        return all(menu[i] != menu[i + 1] for i in range(len(menu) - 1))
 
-    def calculate_max_calories(self):
-        return max(self.calories[fruit] for fruit in self.week_fruits)
+    all_combinations = itertools.product(fruits, repeat=days)
+    valid_menus = filter(is_valid_menu, all_combinations)
+    return list(valid_menus)
 
-    def calculate_max_calories_fruits(self):
-        max_calories = self.calculate_max_calories()
-        return [fruit for fruit in self.week_fruits if self.calories[fruit] == max_calories]
+def target_function(schedule):
+    return len(set(schedule))
 
-while True:
-    num_fruits = int(input('Введите количество различных фруктов (больше 7): '))
-    if num_fruits > 7:
-        break
-    print("Извините, слишком мало фруктов для создания разнообразного меню на все дни недели.")
+'''поиск оптимального меню'''
+def find_optimal_menu(fruits, days):
+    valid_menus = [menu for menu in itertools.product(fruits, repeat=days) if is_valid_schedule(menu)]
+    optimal_menu = max(valid_menus, key=target_function)
+    return optimal_menu
 
-while True:
-    num_weeks = int(input('Введите число недель, на которые будет составлено меню: '))
-    if num_weeks > 0:
-        break
-    print("Введено некорректное количество недель. Пожалуйста, введите число больше нуля.")
+'''запуск программы'''
+def run_program():
+    num_fruits = int(entry_num_fruits.get())
+    fruits = [f"f{i+1}" for i in range(num_fruits)]
+    days = 7
 
-product = Fruit(num_fruits)
-menu_generator = GenerationMenu(num_weeks, product.fruits, product.calories)
-menu_generator.get_week_menu()
+    result_text = ""
+
+    complex_start_time_algo = time.time()
+    complex_all_menus_algo = complex_generate_all_menus_algo(fruits, days)
+    complex_end_time_algo = time.time()
+
+    result_text += "Алгоритмический подход усложненной задачи:\n"
+    for schedule in complex_all_menus_algo:
+        result_text += f"{schedule}\n"
+    result_text += f"Время выполнения усложненной задачи(алгоритмический подход): {complex_end_time_algo - complex_start_time_algo} секунд\n\n"
+
+    complex_start_time_builtin = time.time()
+    complex_all_menus_builtin = complex_generate_all_menus_builtin(fruits, days)
+    complex_end_time_builtin = time.time()
+
+    result_text += "Подход с использованием встроенных функций для усложненной задачи:\n"
+    for schedule in complex_all_menus_builtin:
+        result_text += f"{schedule}\n"
+    result_text += f"Время выполнения усложненной задачи (встроенные функции): {complex_end_time_builtin - complex_start_time_builtin} секунд\n"
+    result_text += f"Разность по времени выполнения: {abs((complex_end_time_builtin - complex_start_time_builtin) - (complex_end_time_algo - complex_start_time_algo))} секунд\n\n"
+
+    start_time_optimal = time.time()
+    optimal_menu = find_optimal_menu(fruits, days)
+    end_time_optimal = time.time()
+
+    result_text += "Оптимальное меню:\n"
+    result_text += f"{optimal_menu}\n"
+    result_text += f"Время выполнения (поиск оптимального меню): {end_time_optimal - start_time_optimal} секунд\n"
+
+    text_result.delete(1.0, tk.END)
+    text_result.insert(tk.END, result_text)
+
+app = tk.Tk()
+app.title("Меню Фруктов")
+
+frame_input = tk.Frame(app)
+frame_input.pack(pady=10)
+
+tk.Label(frame_input, text="Введите количество различных фруктов:").grid(row=0, column=0, padx=5, pady=5)
+entry_num_fruits = tk.Entry(frame_input)
+entry_num_fruits.grid(row=0, column=1, padx=5, pady=5)
+
+frame_buttons = tk.Frame(app)
+frame_buttons.pack(pady=10)
+
+tk.Button(frame_buttons, text="Запустить", command=run_program).grid(row=0, column=0, padx=5, pady=5)
+
+frame_result = tk.Frame(app)
+frame_result.pack(pady=10)
+
+tk.Label(frame_result, text="Результаты:").pack()
+text_result = scrolledtext.ScrolledText(frame_result, width=80, height=20)
+text_result.pack()
+
+app.mainloop()
