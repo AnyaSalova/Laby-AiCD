@@ -56,7 +56,13 @@ def find_optimal_menu(fruits, days):
 
 '''запуск программы'''
 def run_program():
-    num_fruits = int(entry_num_fruits.get())
+    num_fruits = entry_num_fruits.get()
+    if not num_fruits.isdigit() or int(num_fruits) <= 1:
+        text_result.delete(1.0, tk.END)
+        text_result.insert(tk.END, "Из данного количества фруктов невозможно составить меню")
+        return
+
+    num_fruits = int(num_fruits)
     fruits = [f"f{i+1}" for i in range(num_fruits)]
     days = 7
 
