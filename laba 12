@@ -1,142 +1,97 @@
-import pygame
-import random
-import sys
+import turtle
+import tkinter as tk
+from tkinter import simpledialog, messagebox
 
-pygame.init()
+def draw_disk(t, disk_num, x, y, color):
+    t.penup()
+    t.goto(x - disk_num * 10, y)
+    t.pendown()
+    t.begin_fill()
+    t.color(color)
+    t.forward(disk_num * 20)
+    t.left(90)
+    t.forward(20)
+    t.left(90)
+    t.forward(disk_num * 20)
+    t.left(90)
+    t.forward(20)
+    t.left(90)
+    t.end_fill()
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-GREY = (187, 173, 160)
-COLORS = {
-    2: (238, 228, 218),
-    4: (237, 224, 200),
-    8: (242, 177, 121),
-    16: (245, 149, 99),
-    32: (246, 124, 95),
-    64: (246, 94, 59),
-    128: (237, 207, 114),
-    256: (237, 204, 97),
-    512: (237, 200, 80),
-    1024: (237, 197, 63),
-    2048: (237, 194, 46),
-}
+def move_disk(t, from_peg, to_peg, pegs, disk_num, colors):
+    from_x, from_y = pegs[from_peg][-1]
+    to_x, to_y = pegs[to_peg][-1] if pegs[to_peg] else (to_peg * 200 - 200, -150)
 
-SIZE = 4
-TILE_SIZE = 100
-TILE_MARGIN = 10
-WIDTH = SIZE * TILE_SIZE + (SIZE + 1) * TILE_MARGIN
-HEIGHT = WIDTH
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("2048")
+    t.penup()
+    t.goto(from_x - disk_num * 10, from_y)
+    t.pendown()
+    t.goto(from_x - disk_num * 10, from_y + 50)
+    t.goto(to_x - disk_num * 10, from_y + 50)
+    t.goto(to_x - disk_num * 10, to_y + 20)
 
-font = pygame.font.Font(None, 48)
+    pegs[to_peg].append((to_x, to_y + 20))
+    pegs[from_peg].pop()
+    draw_disk(t, disk_num, to_x, to_y + 20, colors[disk_num - 1])
 
+def hanoi_tower(t, n, source, target, auxiliary, pegs, colors):
+    if n == 1:
+        move_disk(t, source, target, pegs, n, colors)
+        return
+    hanoi_tower(t, n - 1, source, auxiliary, target, pegs, colors)
+    move_disk(t, source, target, pegs, n, colors)
+    hanoi_tower(t, n - 1, auxiliary, target, source, pegs, colors)
 
-def draw_board(board):
-    screen.fill(GREY)
-    for row in range(SIZE):
-        for col in range(SIZE):
-            value = board[row][col]
-            color = COLORS.get(value, BLACK)
-            rect = pygame.Rect(
-                col * TILE_SIZE + (col + 1) * TILE_MARGIN,
-                row * TILE_SIZE + (row + 1) * TILE_MARGIN,
-                TILE_SIZE,
-                TILE_SIZE
-            )
-            pygame.draw.rect(screen, color, rect)
-            if value:
-                text = font.render(str(value), True, BLACK if value <= 4 else WHITE)
-                text_rect = text.get_rect(center=rect.center)
-                screen.blit(text, text_rect)
-    pygame.display.flip()
+def setup_pegs(t, n, colors):
+    pegs = {0: [], 1: [], 2: []}
+    for i in range(n, 0, -1):
+        x = -200
+        y = -150 + (n - i) * 20
+        draw_disk(t, i, x, y, colors[i - 1])
+        pegs[0].append((x, y))
+    return pegs
 
+def display_description():
+    description = (
+        "Задача Ханойская башня:\n"
+        "Переместите все диски с первой стойки на третью, соблюдая следующие правила:\n"
+        "1. За один раз можно перемещать только один диск.\n"
+        "2. Диск можно положить только на пустую стойку или на диск большего размера.\n"
+        "3. Используйте промежуточную стойку для временного хранения дисков.\n"
+    )
+    messagebox.showinfo("Описание задачи", description)
 
-def move_left(board):
-    new_board = [[0] * SIZE for _ in range(SIZE)]
-    for row in range(SIZE):
-        col_new = 0
-        last = 0
-        for col in range(SIZE):
-            if board[row][col] != 0:
-                if last == 0:
-                    last = board[row][col]
-                elif last == board[row][col]:
-                    new_board[row][col_new] = 2 * last
-                    col_new += 1
-                    last = 0
-                else:
-                    new_board[row][col_new] = last
-                    col_new += 1
-                    last = board[row][col]
-        if last != 0:
-            new_board[row][col_new] = last
-    return new_board
+def start_visualization(n):
+    screen = turtle.Screen()
+    screen.setup(width=800, height=600)
+    screen.title("Ханойская башня")
+    screen.bgcolor("lightyellow")
 
+    t = turtle.Turtle()
+    t.speed(1)
 
-def rotate_board(board):
-    return [[board[col][row] for col in range(SIZE)] for row in range(SIZE - 1, -1, -1)]
+    # Добавление описания задачи на экран turtle
+    t.penup()
+    t.goto(-390, 250)
+    t.write(
+        "Задача Ханойская башня:\nПереместите все диски с первой стойки на третью.\nПравила:\n1. Перемещать можно только один диск за раз.\n2. Диск нельзя класть на меньший диск.\n3. Используйте промежуточную стойку.",
+        align="left", font=("Arial", 12, "normal"))
 
+    colors = ["red", "green", "blue", "orange", "purple", "yellow", "cyan", "magenta", "brown", "pink"]
+    pegs = setup_pegs(t, n, colors)
+    hanoi_tower(t, n, 0, 2, 1, pegs, colors)
 
-def add_new_tile(board):
-    empty_tiles = [(row, col) for row in range(SIZE) for col in range(SIZE) if board[row][col] == 0]
-    if empty_tiles:
-        row, col = random.choice(empty_tiles)
-        board[row][col] = 2 if random.random() < 0.9 else 4
-
-
-def game_over(board):
-    for row in range(SIZE):
-        for col in range(SIZE):
-            if board[row][col] == 0:
-                return False
-            if col < SIZE - 1 and board[row][col] == board[row][col + 1]:
-                return False
-            if row < SIZE - 1 and board[row][col] == board[row + 1][col]:
-                return False
-    return True
-
+    screen.mainloop()
 
 def main():
-    board = [[0] * SIZE for _ in range(SIZE)]
-    add_new_tile(board)
-    add_new_tile(board)
+    root = tk.Tk()
+    root.withdraw()  # Скрыть основное окно
 
-    running = True
-    while running:
-        draw_board(board)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                running = False
-            elif event.type == pygame.KEYDOWN:
-                if event.key in (pygame.K_LEFT, pygame.K_a):
-                    board = move_left(board)
-                elif event.key in (pygame.K_RIGHT, pygame.K_d):
-                    board = rotate_board(board)
-                    board = rotate_board(board)
-                    board = move_left(board)
-                    board = rotate_board(board)
-                    board = rotate_board(board)
-                elif event.key in (pygame.K_UP, pygame.K_w):
-                    board = rotate_board(board)
-                    board = rotate_board(board)
-                    board = rotate_board(board)
-                    board = move_left(board)
-                    board = rotate_board(board)
-                elif event.key in (pygame.K_DOWN, pygame.K_s):
-                    board = rotate_board(board)
-                    board = move_left(board)
-                    board = rotate_board(board)
-                    board = rotate_board(board)
-                    board = rotate_board(board)
-                add_new_tile(board)
-                if game_over(board):
-                    print("Game over!")
-                    running = False
-        draw_board(board)
-    pygame.quit()
-    sys.exit()
+    display_description()
 
+    n = simpledialog.askinteger("Ввод", "Введите количество дисков:", minvalue=1, maxvalue=10)
+
+    if n is not None   :
+        start_visualization(n)
 
 if __name__ == "__main__":
     main()
